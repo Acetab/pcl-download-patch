@@ -1,0 +1,37 @@
+name: Build Windows tool
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build embedded icon and help
+        shell: powershell
+        run: ./build.ps1
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: pcl-download-patch-windows
+          path: dist/*
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view $env:GITHUB_REF_NAME *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $env:GITHUB_REF_NAME --title "PCL 下载功能补丁 $env:GITHUB_REF_NAME（第三方）" --notes-file CHANGELOG.md
+            if ($LASTEXITCODE -ne 0) { throw 'Release creation failed.' }
+          }
+          gh release upload $env:GITHUB_REF_NAME dist/* --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed.' }
