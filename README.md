@@ -8,7 +8,7 @@ PCL 原作者：[龙腾猫跃 / Meloong-Git](https://github.com/Meloong-Git/PCL)
 
 ## 下载和使用
 
-从 [Releases](https://github.com/Acetab/pcl-download-patch/releases/latest) 下载 `PCL下载补丁.exe` 或 Windows ZIP 包。使用说明已内置，无需额外说明文件。
+从 [Releases](https://github.com/Acetab/pcl-download-patch/releases/latest) 下载 `PCL-Download-Patch.exe` 或 Windows ZIP 包。使用说明已内置，无需额外说明文件。下载文件使用英文名称，程序界面保持中文。
 
 1. 退出 PCL，将工具放在启动器旁边。
 2. 双击工具，选择 PCL 的 EXE；也支持拖入文件。

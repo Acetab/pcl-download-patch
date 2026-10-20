@@ -1,7 +1,7 @@
-param([Parameter(Mandatory=$true)][string]$OriginalLauncher)
+﻿param([Parameter(Mandatory=$true)][string]$OriginalLauncher)
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
-[void][Reflection.Assembly]::LoadFile((Join-Path $root 'dist\PCL下载补丁.exe'))
+[void][Reflection.Assembly]::LoadFile((Join-Path $root 'dist\PCL-Download-Patch.exe'))
 $sourcePlan=[PatchEngine]::Inspect($OriginalLauncher)
 if($sourcePlan.State -ne '可应用补丁'){throw 'Provide an unmodified compatible launcher or its original backup.'}
 $original=[IO.File]::ReadAllBytes($OriginalLauncher)
@@ -39,7 +39,7 @@ $before=[PatchEngine]::Hash([IO.File]::ReadAllBytes($target))
 [IO.File]::WriteAllBytes(($target+'.download-patch.'+$hash+'.bak'),[byte[]](0,1,2,3))
 $rejected=$false;try{[void][PatchEngine]::Restore($target)}catch{$rejected=$true}
 if(!$rejected -or [PatchEngine]::Hash([IO.File]::ReadAllBytes($target)) -ne $before){throw 'Corrupt backups were not safely rejected.'}
-$resources=[Reflection.Assembly]::LoadFile((Join-Path $root 'dist\PCL下载补丁.exe')).GetManifestResourceNames()
+$resources=[Reflection.Assembly]::LoadFile((Join-Path $root 'dist\PCL-Download-Patch.exe')).GetManifestResourceNames()
 if($resources -notcontains 'patch.ico' -or $resources -notcontains 'help.txt'){throw 'Missing embedded help or icon.'}
 if([PatchEngine]::Hash([IO.File]::ReadAllBytes($OriginalLauncher)) -ne $hash){throw 'The source fixture changed.'}
 Write-Output 'PASS: apply, idempotency, readable backup names, reuse, exact restore, legacy compatibility, duplicate backups, corrupt backup rejection, embedded resources, source unchanged.'

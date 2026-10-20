@@ -10,8 +10,8 @@ using System.Reflection;
 
 [assembly: AssemblyTitle("PCL 下载功能补丁（第三方）")]
 [assembly: AssemblyDescription("独立补丁工具，内置说明、备份和还原。非 PCL 官方发布。")]
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.1.1.0")]
+[assembly: AssemblyFileVersion("1.1.1.0")]
 
 // Reads PE/CLI metadata directly. Never loads or executes the target assembly.
 public sealed class PatchPlan {
@@ -121,7 +121,7 @@ public static class PatchEngine {
 public sealed class PatchWindow:Form {
     TextBox path=new TextBox(); TextBox status=new TextBox(); Button apply=new Button(),restore=new Button();
     public PatchWindow(string initial) {
-        Text="PCL 下载功能补丁（第三方） · 1.1.0";ClientSize=new Size(640,370);Font=new Font("Microsoft YaHei UI",9);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;AllowDrop=true;
+        Text="PCL 下载功能补丁（第三方） · 1.1.1";ClientSize=new Size(640,370);Font=new Font("Microsoft YaHei UI",9);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;AllowDrop=true;
         using(Stream icon=Assembly.GetExecutingAssembly().GetManifestResourceStream("patch.ico"))if(icon!=null)Icon=new Icon(icon);
         Label title=new Label{Text="PCL 下载功能补丁",Font=new Font("Microsoft YaHei UI",15,FontStyle.Bold),Location=new Point(20,18),Size=new Size(580,32)};
         Label hint=new Label{Text="关闭 PCL 后使用。选择启动器 EXE，或将它拖入本窗口。",Location=new Point(20,62),Size=new Size(600,24)};

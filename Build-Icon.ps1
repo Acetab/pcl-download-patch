@@ -1,4 +1,4 @@
-$ErrorActionPreference='Stop'
+﻿$ErrorActionPreference='Stop'
 Add-Type -AssemblyName System.Drawing
 $source=[Drawing.Image]::FromFile((Join-Path $PSScriptRoot 'assets\patch.png'))
 $frames=[Collections.Generic.List[byte[]]]::new()
