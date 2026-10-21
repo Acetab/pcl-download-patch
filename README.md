@@ -1,14 +1,14 @@
-# PCL 下载与主题修复 2.1 · 预览版
+# PCL 下载与主题修复 2.1 · 正式版
 
-非 PCL 官方工具，Acetab 独立维护。本版为 `v2.1.0-preview.1` 预览版。
+非 PCL 官方工具，Acetab 独立维护。本版为 `v2.1.0` 正式版。
 
-[下载 2.1 预览版](https://github.com/Acetab/pcl-download-patch/releases/tag/v2.1.0-preview.1) · [验证记录](VERIFICATION.md) · [来源与许可](NOTICE.md)
+[下载 2.1 正式版](https://github.com/Acetab/pcl-download-patch/releases/tag/v2.1.0) · [验证记录](VERIFICATION.md) · [来源与许可](NOTICE.md)
 
 ## 使用
 
 选择已解压的 PCL EXE。默认恢复五个下载相关入口。需要主题时，勾选 **同时解锁全部启动器主题**，再生成副本或原地修复。
 
-从发行页下载 `pcl-download-patch-v2.1.0-preview.1-windows.zip` 并解压，运行其中的 `PCL-Download-Patch.exe`。使用说明、处理组件与图标均内置。
+从发行页下载 `pcl-download-patch-v2.1.0-windows.zip` 并解压，运行其中的 `PCL-Download-Patch.exe`。使用说明、处理组件与图标均内置。
 
 推荐在原目录生成新副本，保留原文件。原地修复先保存完整备份；还原使用完整哈希对应关系。2.0 已有原地修复记录时，添加主题优先从匹配的原版备份重建；无备份的生成副本只保证还原到本次操作前。
 
@@ -52,4 +52,4 @@ PCL 更新替换 EXE 后需重新检查和修复。方法与调用结构仍兼�
 
 ## 发布构建
 
-GitHub Actions 从源码构建，下载固定提交的官方测试样本并验证 SHA-256，执行完整回归后打包。样本与修复后的 PCL 不进入仓库或发行附件。推送版本标签后发布预览附件；CI 构建通过不等于真实窗口、游戏安装或未来版本验证通过。
+GitHub Actions 从源码构建，下载固定提交的官方测试样本并验证 SHA-256，执行完整回归后打包。样本与修复后的 PCL 不进入仓库或发行附件。推送版本标签后发布正式版附件；CI 构建通过不等于真实窗口、游戏安装或未来版本验证通过。

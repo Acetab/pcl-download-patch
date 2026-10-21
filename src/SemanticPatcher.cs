@@ -101,7 +101,7 @@ namespace DownloadRepair {
                 flag.Constant=false;
                 foreach(var f in m.GetTypes().SelectMany(t=>t.Methods).Where(f=>f.HasBody)) if(IsJob(f)||f.DeclaringType.FullName==Worker) { LongBranches(f);Bounds(f); }
                 Require(States(m).All(x=>x.Ready),"内存中的恢复结果未通过检查");
-                m.Resources.Add(new EmbeddedResource(Marker,ManifestResourceAttributes.Private,Encoding.UTF8.GetBytes("format=2\ntool=2.1.0-preview.1\noriginal="+FileSafety.Hash(input)+"\n")));
+                m.Resources.Add(new EmbeddedResource(Marker,ManifestResourceAttributes.Private,Encoding.UTF8.GetBytes("format=2\ntool=2.1.0\noriginal="+FileSafety.Hash(input)+"\n")));
                 using(var output=new MemoryStream()) { m.Write(output,new WriterParameters{Timestamp=0,DeterministicMvid=true});result.Bytes=output.ToArray(); }
                 using(var saved=Read(result.Bytes)) {
                     Require(States(saved).All(x=>x.Ready),"生成后的入口校验失败");

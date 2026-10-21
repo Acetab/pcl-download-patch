@@ -1,4 +1,4 @@
-PCL 下载与主题修复 2.1 · 预览版
+PCL 下载与主题修复 2.1 · 正式版
 
 Acetab 独立维护，非 PCL 官方工具。PCL 原作者：龙腾猫跃。
 
@@ -37,4 +37,4 @@ Acetab 独立维护，非 PCL 官方工具。PCL 原作者：龙腾猫跃。
 --launch 路径 / --launch-themes 路径
 带 -themes 同时处理主题；不带只处理下载。路径含空格时加双引号。检查返回 0=可修复、2=已可用、1=失败；其余命令 0=成功、1=失败。launch 会运行 PCL。
 
-第三方预览版，源码与发行包：https://github.com/Acetab/pcl-download-patch 。Mono.Cecil 0.11.6、图标、说明和主题配色模板内置，使用时不下载规则或组件。
+第三方正式版，源码与发行包：https://github.com/Acetab/pcl-download-patch 。Mono.Cecil 0.11.6、图标、说明和主题配色模板内置，使用时不下载规则或组件。
