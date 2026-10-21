@@ -3,3 +3,6 @@ dist/
 *.bak
 *.log
 AGENTS.md
+vendor/*Tests.exe
+vendor/VerifyRuntime.exe
+vendor/PCL-Download-Repair-Preview.exe

@@ -1,64 +1,55 @@
-<img src="assets/patch.png" alt="PCL 下载补丁图标" width="104">
+# PCL 下载与主题修复 2.1 · 预览版
 
-# PCL 下载功能补丁（第三方）
+非 PCL 官方工具，Acetab 独立维护。本版为 `v2.1.0-preview.1` 预览版。
 
-PCL 原作者：[龙腾猫跃 / Meloong-Git](https://github.com/Meloong-Git/PCL)。[PCL 官网与支持原作者入口](https://meloong.com/PCL)。
+[下载 2.1 预览版](https://github.com/Acetab/pcl-download-patch/releases/tag/v2.1.0-preview.1) · [验证记录](VERIFICATION.md) · [来源与许可](NOTICE.md)
 
-由 Acetab 独立维护的 Windows 补丁工具，提供结构检查、原版备份、还原和内置使用说明。**非 PCL 官方发布。**
+## 使用
 
-## 下载和使用
+选择已解压的 PCL EXE。默认恢复五个下载相关入口。需要主题时，勾选 **同时解锁全部启动器主题**，再生成副本或原地修复。
 
-从 [Releases](https://github.com/Acetab/pcl-download-patch/releases/latest) 下载 `PCL-Download-Patch.exe` 或 Windows ZIP 包。使用说明已内置，无需额外说明文件。下载文件使用英文名称，程序界面保持中文。
+从发行页下载 `pcl-download-patch-v2.1.0-preview.1-windows.zip` 并解压，运行其中的 `PCL-Download-Patch.exe`。使用说明、处理组件与图标均内置。
 
-1. 退出 PCL，将工具放在启动器旁边。
-2. 双击工具，选择 PCL 的 EXE；也支持拖入文件。
-3. 显示“可应用补丁”后，点击“恢复下载”。
-4. 正常打开 PCL。要查看说明，点击“使用说明 / 关于”。
+推荐在原目录生成新副本，保留原文件。原地修复先保存完整备份；还原使用完整哈希对应关系。2.0 已有原地修复记录时，添加主题优先从匹配的原版备份重建；无备份的生成副本只保证还原到本次操作前。
 
-备份保存在启动器旁的 `PCL补丁备份` 文件夹，名称包含版本与时间。撤销时选择同一个 EXE，点击“还原原版”。旧版工具生成的哈希命名备份仍支持还原。
+取消勾选只表示这次不加主题，不会撤销已有主题模块。要去掉已应用的模块，请还原修复前，再选择所需模式。
 
-## 适配范围
+## 主题实现
 
-**仅实测正式版 PCL 2.99.0.0，不保证每次更新都能适配。**
+只额外处理三个外观方法：ThemeRefresh、ThemeCheckOne、ThemeCheckAll 实际调用的 UI 回调。按调用关系定位，不固定编译器生成的闭包编号。
 
-| 情况 | 工具行为 |
-| --- | --- |
-| 与已适配版本保持相同方法及指令结构 | 检查通过后可应用 |
-| 更新覆盖了已打补丁的 EXE | 可重新打开工具检查 |
-| 方法长度、指令、类型名称或文件结构变化 | 停止并提示需要适配 |
-| 带有 Authenticode 签名或程序集强名称 | 当前工具拒绝修改 |
+配色模板及两段渐变常量来自用户提供的 2.14.0.0 快照程序，只包含 ThemeRefresh 指令与渐变数据，不含完整 EXE、账号信息或授权密钥。引用按完整名称重新绑定；必要泛型转换和静态数组通过结构和运行时校验。控件刷新独立实现，启用界面中 15 个主题，并在 finally 中恢复动画控制计数。
 
-本工具按 PE/CLI 元数据定位类型、字段和方法，校验关键指令与停用提示，再修改下载页面初始化方法的一段 48 字节区域。该版本实际变化 41 字节，使用启动器原有的下载加载器。补丁不会自动联网获取或执行新规则。
+逐个比较非目标方法和原有内嵌资源。赞助等级、土豆码、ThemeUnlock、更新授权和正版登录逻辑保持不变。不产生赞助凭证，不恢复正式版的赞助土豆码输入入口。
 
-补丁不关闭 PCL 更新，也不修改 `Setup.ini`。此前若设置了 `SystemSystemUpdate:3`，需自行重新开启更新提示。
+下载引擎仍恢复原版游戏下载页、版本修改页卡片、整合包选择、七类整合包分派、资源详情安装入口。保留压缩包的 finally。
 
-## 验证
+## 极客蓝解谜
 
-- PCL 2.99.0.0：真实窗口中恢复版本列表，并完成 `rd-132211` 下载和安装；下载 JAR 的 SHA-1 与 Mojang 对象地址一致。
-- 备份与完整还原、重复应用、备份复用、新旧备份兼容、损坏备份拒绝还原均已测试。
-- 未测试所有 MC 版本、模组、整合包或游戏启动。
-- 本工具仅改选中的 EXE。仓库不包含 PCL 原版/修改版程序、游戏数据或用户账号信息。
+原始快照版先解锁至少三个隐藏主题，点击极客蓝旁文字进入谜题。代码接受的最终答案为 `PuzzleUnlock` 加自己的识别码末四位，区分大小写、不加空格；也接受末五位或六位。填入支持该功能的快照版“输入土豆码”入口。这是彩蛋答案，不是赞助授权。
 
-## 构建与测试
+勾选本工具全部主题后，极客蓝直接可选。谜题真实窗口操作尚未演练，方法来自用户提供程序的静态检查。
 
-需要 Windows，安装 .NET Framework 4.8。构建使用系统 Framework 的 C# 编译器，不需要安装额外 NuGet 包。
+## 验证与构建
+
+指定正式版 2.99.0.0 通过 28 项基础回归、23 项主题检查、9 个方法 JIT 校验，以及 15 种整合包分派与异常释放探针。详细哈希和边界见 `VERIFICATION.md`。
+
+尚未实测真实窗口中全部主题切换、真实整合包下载安装、游戏启动、未来构建或自动更新全流程。
+
+Windows / .NET Framework 4.8。Mono.Cecil 0.11.6 已固定，无 NuGet 或联网构建步骤。
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File ./build.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File ./test.ps1 -OriginalLauncher 'D:/path/original-PCL.exe'
+powershell -NoProfile -ExecutionPolicy Bypass -File ./package.ps1
 ```
 
-产物位于 `dist/`。图标和说明均作为资源嵌入 EXE。
+修复器只解析目标字节，不执行所选启动器。开发测试在独立副本中加载/JIT 方法；整合包测试使用安装器探针。许可及配色模板来源见 `NOTICE.md`。
 
-用一份未修改的、兼容的 PCL EXE 或原版备份做本地回归测试（只操作测试副本）：
+## 更新后的处理
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-Backup.ps1 -OriginalLauncher 'D:\path\original-PCL.bak'
-```
+PCL 更新替换 EXE 后需重新检查和修复。方法与调用结构仍兼容时可继续使用；结构变化时停止，需要更新工具。可创建启动前检查快捷方式，首次遇到未实测构建会停止并提示手动检查。PCL 自行更新后的立即重启不经过此入口；工具不联网下载规则、不常驻。
 
-CI 负责构建并上传产物；带 `v` 前缀的版本标签触发 Release 发布。CI 构建成功不代表兼容所有未来 PCL 版本。
+## 发布构建
 
-## 署名与许可
-
-补丁代码采用 [MIT](LICENSE) 许可。PCL 名称及原图标的权益不属于本项目的 MIT 授权范围，详见 [第三方说明](NOTICE.md)。图标以用户提供的 PCL 图标为参考，通过 imagegen 生成带扳手徽标的第三方工具变体。
-
-若提交问题，请提供 PCL 版本、补丁版本、提示文字和 EXE 的 SHA-256；不要上传账号配置、令牌、游戏数据或含个人信息的完整日志。
+GitHub Actions 从源码构建，下载固定提交的官方测试样本并验证 SHA-256，执行完整回归后打包。样本与修复后的 PCL 不进入仓库或发行附件。推送版本标签后发布预览附件；CI 构建通过不等于真实窗口、游戏安装或未来版本验证通过。

@@ -1,4 +1,4 @@
-name: Build Windows tool
+name: Build and verify Windows tool
 on:
   push:
     branches: [main]
@@ -14,27 +14,32 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build embedded icon and help
+      - name: Verify against pinned official fixture
         shell: pwsh
-        run: ./build.ps1
-      - name: Upload build
-        uses: actions/upload-artifact@v4
+        run: |
+          $fixture = ./scripts/Get-OfficialFixture.ps1 -WorkDirectory (Join-Path $env:RUNNER_TEMP 'pcl-fixture')
+          ./test.ps1 -OriginalLauncher $fixture -WorkDirectory (Join-Path $env:RUNNER_TEMP 'pcl-tests')
+      - name: Package verified tool and source
+        shell: pwsh
+        run: ./package.ps1
+      - uses: actions/upload-artifact@v4
         with:
-          name: pcl-download-patch-windows
+          name: pcl-download-patch-v2.1.0-preview.1-windows
           path: |
             dist/PCL-Download-Patch.exe
-            dist/pcl-download-patch-v1.1.1-windows.zip
+            dist/*.zip
             dist/SHA256SUMS.txt
-      - name: Publish tagged release
+      - name: Publish tagged preview
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if ($env:GITHUB_REF_NAME -ne 'v2.1.0-preview.1') { throw 'Tag and package version differ.' }
           gh release view $env:GITHUB_REF_NAME *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $env:GITHUB_REF_NAME --title "PCL 下载功能补丁 $env:GITHUB_REF_NAME（第三方）" --notes-file CHANGELOG.md
+            gh release create $env:GITHUB_REF_NAME --verify-tag --prerelease --title 'PCL 下载与主题修复 2.1 预览版（第三方）' --notes-file RELEASE_NOTES.md
             if ($LASTEXITCODE -ne 0) { throw 'Release creation failed.' }
           }
-          gh release upload $env:GITHUB_REF_NAME dist/PCL-Download-Patch.exe dist/pcl-download-patch-v1.1.1-windows.zip dist/SHA256SUMS.txt --clobber
+          gh release upload $env:GITHUB_REF_NAME dist/PCL-Download-Patch.exe dist/pcl-download-patch-v2.1.0-preview.1-windows.zip dist/pcl-download-patch-v2.1.0-preview.1-source.zip dist/SHA256SUMS.txt --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Release upload failed.' }
