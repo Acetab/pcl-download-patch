@@ -15,37 +15,40 @@ namespace DownloadRepair {
     public sealed class PaletteHandler { public string Type,CatchType;public int TryStart,TryEnd,HandlerStart,HandlerEnd,FilterStart; }
     public sealed class PaletteField { public string FullName,Name,DeclaringType,Type,Data;public int ClassSize,PackingSize; }
     public sealed class PaletteTemplate { public int Format,MaxStackSize;public string SourceSha256,Method;public bool InitLocals;public string[] Locals;public PaletteInstruction[] Code;public PaletteHandler[] Handlers;public PaletteField[] DataFields; }
-    public sealed class ThemeRecord { public int Format=1;public string Refresh,Check,Controls,ControlsMethod; }
+    public sealed class ThemeRecord { public int Format=2;public string Refresh,Check,Controls,ControlsMethod,Loaded; }
     public sealed class ThemeResult { public byte[] Bytes;public bool AlreadyUnlocked; }
     public static class ThemePatcher {
         public const string Marker="Acetab.PclDownloadRepair.Themes.v1";
         public const string PaletteHash="02e882a8f90f333c3451656978fc8248c35e3e423a92f1aa4931640118200e5d";
         const string RefreshKey="System.Void PCL.ModSecret::ThemeRefresh(System.Int32)";
         const string CheckKey="System.Boolean PCL.ModSecret::ThemeCheckOne(System.Int32)";
+        const string LoadedKey="System.Void PCL.PageSetupUI::PageSetupUI_Loaded(System.Object,System.Windows.RoutedEventArgs)";
         static void Need(bool b,string text){SemanticPatcher.Require(b,text);}
         static MethodDefinition Refresh(ModuleDefinition m){return SemanticPatcher.Method(SemanticPatcher.Type(m,"PCL.ModSecret"),"ThemeRefresh",1);}
         static MethodDefinition Check(ModuleDefinition m){return SemanticPatcher.Method(SemanticPatcher.Type(m,"PCL.ModSecret"),"ThemeCheckOne",1);}
         static MethodDefinition Controls(ModuleDefinition m){var task=SemanticPatcher.Method(SemanticPatcher.Type(m,"PCL.ModSecret"),"ThemeCheckAll",1);var refs=task.Body.Instructions.Where(i=>i.OpCode==OpCodes.Ldftn).Select(i=>i.Operand as MethodReference).ToArray();Need(refs.Length==1&&refs[0]!=null&&refs[0].DeclaringType.FullName.StartsWith("PCL.ModSecret/"),"主题刷新回调结构改变");var r=refs[0];return SemanticPatcher.Type(m,r.DeclaringType.FullName).Methods.Single(x=>x.FullName==r.FullName);}
         static bool AlwaysTrue(MethodDefinition f){var c=f.Body.Instructions.Where(i=>i.OpCode!=OpCodes.Nop).ToArray();return c.Length==2&&c[0].OpCode==OpCodes.Ldc_I4_1&&c[1].OpCode==OpCodes.Ret;}
-        public static bool IsUnlocked(byte[] input){using(var m=SemanticPatcher.Read(input)){var marks=m.Resources.Where(r=>r.Name==Marker).ToArray();if(marks.Length==0)return false;Need(marks.Length==1&&marks[0] is EmbeddedResource,"主题修复标记无效");var record=new JavaScriptSerializer().Deserialize<ThemeRecord>(Encoding.UTF8.GetString(((EmbeddedResource)marks[0]).GetResourceData()));var shapes=SemanticPatcher.MethodShapes(m);Need(record!=null&&record.Format==1&&record.ControlsMethod==Controls(m).FullName&&AlwaysTrue(Check(m))&&shapes[RefreshKey]==record.Refresh&&shapes[CheckKey]==record.Check&&shapes[record.ControlsMethod]==record.Controls,"主题代码与修复标记不一致，请使用修复前备份");return true;}}
+        public static bool IsUnlocked(byte[] input){using(var m=SemanticPatcher.Read(input)){var marks=m.Resources.Where(r=>r.Name==Marker).ToArray();if(marks.Length==0)return false;Need(marks.Length==1&&marks[0] is EmbeddedResource,"主题修复标记无效");var record=new JavaScriptSerializer().Deserialize<ThemeRecord>(Encoding.UTF8.GetString(((EmbeddedResource)marks[0]).GetResourceData()));var shapes=SemanticPatcher.MethodShapes(m);Need(record!=null&&(record.Format==1||record.Format==2)&&record.ControlsMethod==Controls(m).FullName&&AlwaysTrue(Check(m))&&shapes[RefreshKey]==record.Refresh&&shapes[CheckKey]==record.Check&&shapes[record.ControlsMethod]==record.Controls,"主题代码与修复标记不一致，请使用修复前备份");if(record.Format==1)return false;Need(shapes[LoadedKey]==record.Loaded&&OverlayValue(m).OpCode==OpCodes.Ldc_I4_2,"主题遮罩修复与记录不一致");return true;}}
         public static ThemeResult Apply(byte[] input) {
             if(IsUnlocked(input))return new ThemeResult{Bytes=input,AlreadyUnlocked=true};
             using(var m=SemanticPatcher.Read(input)) {
                 var before=SemanticPatcher.MethodShapes(m);var resources=m.Resources.OfType<EmbeddedResource>().ToDictionary(x=>x.Name,x=>FileSafety.Hash(x.GetResourceData()));
                 var refresh=Refresh(m);var check=Check(m);var controls=Controls(m);
+                bool upgrading=m.Resources.Any(r=>r.Name==Marker);
                 Need(refresh.ReturnType.FullName=="System.Void"&&refresh.Parameters[0].ParameterType.FullName=="System.Int32"&&check.ReturnType.FullName=="System.Boolean"&&check.Parameters[0].ParameterType.FullName=="System.Int32","主题方法签名不匹配");
-                Need(check.Body.Instructions.Any(i=>i.Operand is MethodReference&&((MethodReference)i.Operand).Name=="get_CurrentRank")&&check.Body.Instructions.Any(i=>i.OpCode==OpCodes.Ldstr&&(string)i.Operand=="UiLauncherThemeHide2"),"主题资格判断不是已识别的原始结构");
-                Need(controls.Body.Instructions.Any(i=>i.Operand is MethodReference&&((MethodReference)i.Operand).Name=="ThemeCheckOne")&&controls.Body.Instructions.Any(i=>i.Operand is FieldReference&&((FieldReference)i.Operand).Name=="FrmSetupUI"),"主题控件刷新结构不匹配");
+                if(!upgrading){Need(check.Body.Instructions.Any(i=>i.Operand is MethodReference&&((MethodReference)i.Operand).Name=="get_CurrentRank")&&check.Body.Instructions.Any(i=>i.OpCode==OpCodes.Ldstr&&(string)i.Operand=="UiLauncherThemeHide2"),"主题资格判断不是已识别的原始结构");Need(controls.Body.Instructions.Any(i=>i.Operand is MethodReference&&((MethodReference)i.Operand).Name=="ThemeCheckOne")&&controls.Body.Instructions.Any(i=>i.Operand is FieldReference&&((FieldReference)i.Operand).Name=="FrmSetupUI"),"主题控件刷新结构不匹配");}
                 var payload=LoadTemplate();var members=Index(m);AddDataFields(m,payload,members);AddArrayOperator(m,members);
                 Need(refresh.Body.Instructions.Take(2).Any(i=>i.OpCode==OpCodes.Starg||i.OpCode==OpCodes.Starg_S)||refresh.Body.Instructions.Any(i=>i.OpCode==OpCodes.Switch&&((Instruction[])i.Operand).Length==15),"主题配色布局改变，当前主题模块停止");
                 RestorePalette(m,refresh,payload,members);
                 check.Body=new MethodBody(check);check.Body.GetILProcessor().Emit(OpCodes.Ldc_I4_1);check.Body.GetILProcessor().Emit(OpCodes.Ret);
                 RestoreControls(m,controls);
-                var shapes=SemanticPatcher.MethodShapes(m);var record=new ThemeRecord{Refresh=shapes[RefreshKey],Check=shapes[CheckKey],Controls=shapes[controls.FullName],ControlsMethod=controls.FullName};
+                var overlay=OverlayValue(m);overlay.OpCode=OpCodes.Ldc_I4_2;overlay.Operand=null;
+                var shapes=SemanticPatcher.MethodShapes(m);var record=new ThemeRecord{Refresh=shapes[RefreshKey],Check=shapes[CheckKey],Controls=shapes[controls.FullName],ControlsMethod=controls.FullName,Loaded=shapes[LoadedKey]};
+                foreach(var old in m.Resources.Where(r=>r.Name==Marker).ToArray())m.Resources.Remove(old);
                 m.Resources.Add(new EmbeddedResource(Marker,ManifestResourceAttributes.Private,Encoding.UTF8.GetBytes(new JavaScriptSerializer().Serialize(record))));
                 byte[] output;using(var stream=new MemoryStream()){m.Write(stream,new WriterParameters{Timestamp=0,DeterministicMvid=true});output=stream.ToArray();}
                 using(var saved=SemanticPatcher.Read(output)) {
-                    var after=SemanticPatcher.MethodShapes(saved);foreach(var p in before)if(p.Key!=RefreshKey&&p.Key!=CheckKey&&p.Key!=controls.FullName)Need(after.ContainsKey(p.Key)&&after[p.Key]==p.Value,"非主题方法发生变化："+p.Key);
+                    var after=SemanticPatcher.MethodShapes(saved);foreach(var p in before)if(p.Key!=RefreshKey&&p.Key!=CheckKey&&p.Key!=controls.FullName&&p.Key!=LoadedKey)Need(after.ContainsKey(p.Key)&&after[p.Key]==p.Value,"非主题方法发生变化："+p.Key);
                     Need(after.Count==before.Count,"主题模块不应增加或删除方法");
                     foreach(var r in saved.Resources.OfType<EmbeddedResource>().Where(r=>r.Name!=Marker))Need(resources.ContainsKey(r.Name)&&resources[r.Name]==FileSafety.Hash(r.GetResourceData()),"原有资源发生变化："+r.Name);
                     Need(saved.Resources.Count==m.Resources.Count,"主题模块导致资源丢失");
@@ -53,6 +56,7 @@ namespace DownloadRepair {
                 Need(IsUnlocked(output),"生成后的主题恢复复查失败");return new ThemeResult{Bytes=output};
             }
         }
+        static Instruction OverlayValue(ModuleDefinition m){var f=SemanticPatcher.Method(SemanticPatcher.Type(m,"PCL.PageSetupUI"),"PageSetupUI_Loaded",2);var gets=f.Body.Instructions.Where(i=>i.Operand is MethodReference&&((MethodReference)i.Operand).Name=="get_PanLauncherHide").ToArray();Need(gets.Length==1,"主题遮罩加载入口结构改变");var value=gets[0].Next;var setter=value==null?null:value.Next;Need(value!=null&&(value.OpCode==OpCodes.Ldc_I4_0||value.OpCode==OpCodes.Ldc_I4_2)&&setter!=null&&setter.OpCode==OpCodes.Callvirt&&setter.Operand is MethodReference&&((MethodReference)setter.Operand).FullName=="System.Void System.Windows.UIElement::set_Visibility(System.Windows.Visibility)","主题遮罩可见性指令结构改变");return value;}
         static PaletteTemplate LoadTemplate(){using(var r=Assembly.GetExecutingAssembly().GetManifestResourceStream("theme-palette.json"))using(var stream=new MemoryStream()){Need(r!=null,"主题配色资源缺失");r.CopyTo(stream);byte[] b=stream.ToArray();Need(FileSafety.Hash(b)==PaletteHash,"主题配色资源校验失败");var t=new JavaScriptSerializer().Deserialize<PaletteTemplate>(Encoding.UTF8.GetString(b));Need(t.Format==1&&t.Method==RefreshKey&&t.Code.Length>200&&t.Code.Length<1000,"主题配色模板格式无效");return t;}}
         static Dictionary<string,MemberReference> Index(ModuleDefinition m){var d=new Dictionary<string,MemberReference>();Action<MemberReference> add=x=>{if(x!=null&&!d.ContainsKey(x.FullName))d.Add(x.FullName,x);};foreach(var x in m.GetTypeReferences())add(x);foreach(var x in m.GetMemberReferences())add(x);foreach(var t in m.GetTypes()){add(t);foreach(var f in t.Fields){add(f);add(f.FieldType);}foreach(var f in t.Methods){add(f);add(f.ReturnType);foreach(var p in f.Parameters)add(p.ParameterType);if(!f.HasBody)continue;foreach(var v in f.Body.Variables)add(v.VariableType);foreach(var i in f.Body.Instructions)add(i.Operand as MemberReference);}}return d;}
         static T Ref<T>(Dictionary<string,MemberReference> map,string name)where T:MemberReference{MemberReference r;Need(map.TryGetValue(name,out r)&&r is T,"主题引用缺失："+name);return (T)r;}
@@ -68,7 +72,8 @@ namespace DownloadRepair {
             var enabled=m.ImportReference(typeof(System.Windows.UIElement).GetProperty("IsEnabled").GetSetMethod());
             for(int n=0;n<=14;n++){var get=SemanticPatcher.Method(setup,"get_RadioLauncherTheme"+n,0);if(n!=0)il.Emit(OpCodes.Ldsfld,ui);il.Emit(OpCodes.Callvirt,get);il.Emit(OpCodes.Ldc_I4_1);il.Emit(OpCodes.Callvirt,enabled);}
             il.Emit(OpCodes.Ldsfld,ui);il.Emit(OpCodes.Callvirt,SemanticPatcher.Method(setup,"get_RadioLauncherTheme5",0));il.Emit(OpCodes.Ldc_R8,1.0);il.Emit(OpCodes.Callvirt,m.ImportReference(typeof(System.Windows.UIElement).GetProperty("Opacity").GetSetMethod()));
-            foreach(string name in new[]{"get_RadioLauncherTheme5Gray","get_LabLauncherTheme5Unlock","get_LabLauncherTheme8Copy","get_LabLauncherTheme9Copy","get_LabLauncherTheme11Click"}){il.Emit(OpCodes.Ldsfld,ui);il.Emit(OpCodes.Callvirt,SemanticPatcher.Method(setup,name,0));il.Emit(OpCodes.Ldc_I4_2);il.Emit(OpCodes.Callvirt,m.ImportReference(typeof(System.Windows.UIElement).GetProperty("Visibility").GetSetMethod()));}
+            foreach(string name in new[]{"get_RadioLauncherTheme5Gray","get_LabLauncherTheme5Unlock","get_LabLauncherTheme8Copy","get_LabLauncherTheme9Copy","get_LabLauncherTheme11Click","get_PanLauncherHide"}){il.Emit(OpCodes.Ldsfld,ui);il.Emit(OpCodes.Callvirt,SemanticPatcher.Method(setup,name,0));il.Emit(OpCodes.Ldc_I4_2);il.Emit(OpCodes.Callvirt,m.ImportReference(typeof(System.Windows.UIElement).GetProperty("Visibility").GetSetMethod()));}
+            il.Emit(OpCodes.Ldsfld,ui);il.Emit(OpCodes.Callvirt,SemanticPatcher.Method(setup,"get_PanLauncherHide",0));il.Emit(OpCodes.Ldc_I4_0);il.Emit(OpCodes.Callvirt,m.ImportReference(typeof(System.Windows.UIElement).GetProperty("IsHitTestVisible").GetSetMethod()));
             il.Emit(OpCodes.Leave,end);il.Append(cleanup);il.Emit(OpCodes.Ldc_I4_1);il.Emit(OpCodes.Sub);il.Emit(OpCodes.Call,setAni);il.Emit(OpCodes.Endfinally);il.Append(end);b.ExceptionHandlers.Add(new ExceptionHandler(ExceptionHandlerType.Finally){TryStart=start,TryEnd=cleanup,HandlerStart=cleanup,HandlerEnd=end});
         }
     }

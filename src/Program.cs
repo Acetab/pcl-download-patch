@@ -10,8 +10,8 @@ using System.Web.Script.Serialization;
 
 [assembly: AssemblyTitle("PCL 下载功能修复（第三方）")]
 [assembly: AssemblyDescription("正式版：下载恢复与可选的全部主题解锁。")]
-[assembly: AssemblyVersion("2.1.0.0")]
-[assembly: AssemblyFileVersion("2.1.0.0")]
+[assembly: AssemblyVersion("2.1.1.0")]
+[assembly: AssemblyFileVersion("2.1.1.0")]
 namespace DownloadRepair {
     public static class Dependency {
         static bool installed;
@@ -32,7 +32,7 @@ namespace DownloadRepair {
         public RepairWindow(string initial):this(initial,false){}
         public RepairWindow(string initial,bool preview) {
             renderOnly=preview;
-            Text="PCL 下载与主题修复 · 2.1 正式版";Font=new Font("Microsoft YaHei UI",9F);AutoScaleMode=AutoScaleMode.Dpi;ClientSize=new Size(760,675);MinimumSize=new Size(776,714);StartPosition=FormStartPosition.CenterScreen;BackColor=Color.White;AllowDrop=true;
+            Text="PCL 下载与主题修复 · 2.1.1 正式版";Font=new Font("Microsoft YaHei UI",9F);AutoScaleMode=AutoScaleMode.Dpi;ClientSize=new Size(760,675);MinimumSize=new Size(776,714);StartPosition=FormStartPosition.CenterScreen;BackColor=Color.White;AllowDrop=true;
             using(var s=Assembly.GetExecutingAssembly().GetManifestResourceStream("patch.ico"))if(s!=null)Icon=new Icon(s);
             var title=new Label{Text="PCL 下载功能修复",Font=new Font(Font.FontFamily,20,FontStyle.Bold),AutoSize=false,Location=new Point(26,24),Size=new Size(600,40)};
             var subtitle=new Label{Text="恢复原版下载与整合包安装，可选解锁启动器主题",ForeColor=Color.FromArgb(90,90,90),Location=new Point(28,72),Size=new Size(690,24)};
@@ -49,7 +49,7 @@ namespace DownloadRepair {
             apply.Text="修复原文件";apply.SetBounds(224,558,152,40);restore.Text="还原修复前";restore.SetBounds(388,558,152,40);
             var help=new Button{Text="使用说明",Location=new Point(580,558),Size=new Size(152,40),Anchor=AnchorStyles.Top|AnchorStyles.Right};
             shortcut.Text="创建自动检查启动入口";shortcut.SetBounds(28,620,200,30);
-            var footer=new Label{Text="第三方工具 · Acetab · 2.1.0",ForeColor=Color.DimGray,Location=new Point(250,627),Size=new Size(480,23),TextAlign=ContentAlignment.MiddleRight,Anchor=AnchorStyles.Top|AnchorStyles.Right};
+            var footer=new Label{Text="第三方工具 · Acetab · 2.1.1",ForeColor=Color.DimGray,Location=new Point(250,627),Size=new Size(480,23),TextAlign=ContentAlignment.MiddleRight,Anchor=AnchorStyles.Top|AnchorStyles.Right};
             Controls.AddRange(new Control[]{title,subtitle,path,choose,state,version,line,detail,copy,apply,restore,help,shortcut,footer});
             var recheck=new LinkLabel{Text="重新检查",Location=new Point(659,205),Size=new Size(74,24),Anchor=AnchorStyles.Top|AnchorStyles.Right};Controls.Add(recheck);recheck.BringToFront();recheck.LinkClicked+=delegate{Inspect();};
             path.TextChanged+=delegate{plan=null;copy.Enabled=apply.Enabled=restore.Enabled=shortcut.Enabled=false;state.Text="按回车或点击“重新检查”";};path.Leave+=delegate{Inspect();};

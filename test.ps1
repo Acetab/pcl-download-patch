@@ -10,8 +10,10 @@ $bin = Join-Path $WorkDirectory 'tools'
 $exe = Join-Path $root 'dist\PCL-Download-Patch.exe'
 Copy-Item -LiteralPath $exe,(Join-Path $root 'vendor\Mono.Cecil.dll') -Destination $bin
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
+$wpf = Join-Path (Split-Path $compiler) 'WPF'
 $refs = @('/reference:System.Core.dll','/reference:System.Web.Extensions.dll',"/reference:$exe",('/reference:' + (Join-Path $bin 'Mono.Cecil.dll')))
-foreach ($name in @('EngineTests','DispatchTests','VerifyRuntime','ThemeTests','VerifyThemeRuntime')) {
+$refs += @('/reference:System.Xaml.dll',"/reference:$wpf\PresentationFramework.dll","/reference:$wpf\PresentationCore.dll","/reference:$wpf\WindowsBase.dll")
+foreach ($name in @('EngineTests','DispatchTests','VerifyRuntime','ThemeTests','VerifyThemeRuntime','ThemeUiProbe')) {
     & $compiler /nologo /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll $refs ('/out:' + (Join-Path $bin "$name.exe")) (Join-Path $root "tests\$name.cs")
     if ($LASTEXITCODE -ne 0) { throw "Test compilation failed: $name" }
 }
@@ -28,6 +30,8 @@ $themeCases = Join-Path $WorkDirectory 'themes'
 if ($LASTEXITCODE -ne 0) { throw 'Theme tests failed.' }
 & (Join-Path $bin 'VerifyThemeRuntime.exe') (Join-Path $themeCases 'copy\PCL.themes.exe') | Tee-Object -FilePath (Join-Path $WorkDirectory 'theme-jit.txt')
 if ($LASTEXITCODE -ne 0) { throw 'Theme JIT validation failed.' }
+& (Join-Path $bin 'ThemeUiProbe.exe') (Join-Path $themeCases 'copy\PCL.themes.exe') | Tee-Object -FilePath (Join-Path $WorkDirectory 'theme-ui.txt')
+if ($LASTEXITCODE -ne 0) { throw 'Theme WPF lifecycle/hit-test validation failed.' }
 # Prove that the deliverable runs with no loose Cecil DLL beside it.
 $standalone = Join-Path $WorkDirectory 'standalone'
 [void][IO.Directory]::CreateDirectory($standalone)

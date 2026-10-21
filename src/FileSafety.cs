@@ -17,7 +17,7 @@ namespace DownloadRepair {
     }
     public sealed class BackupRecord {
         public int Format=2;
-        public string Tool="2.1.0",TargetName,Version,OriginalHash,BeforeHash,PatchedHash,CreatedUtc;
+        public string Tool="2.1.1",TargetName,Version,OriginalHash,BeforeHash,PatchedHash,CreatedUtc;
     }
     public static class FileSafety {
         public static readonly string[] KnownOriginals={"6b6e1260cb5a1d6a303855f1c60cab3d0bc1aebba7e40a964180188b271e7386"};

@@ -7,6 +7,7 @@ class VerifyThemeRuntime {
         var secret=assembly.GetType("PCL.ModSecret",true);foreach(string name in new[]{"ThemeRefresh","ThemeCheckOne"}){var f=secret.GetMethod(name,BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static);RuntimeHelpers.PrepareMethod(f.MethodHandle);Console.WriteLine("JIT_OK "+f);}
         // A compiler-generated closure is located by its unique EffectSetup capture, not an index.
         var closure=secret.GetNestedTypes(BindingFlags.Public|BindingFlags.NonPublic).Single(t=>t.GetField("$VB$Local_EffectSetup",BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Instance)!=null);var callback=closure.GetMethods(BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.DeclaredOnly).Single(f=>f.Name=="_Lambda$__0");RuntimeHelpers.PrepareMethod(callback.MethodHandle);Console.WriteLine("JIT_OK "+callback.DeclaringType+" "+callback);
-        Console.WriteLine("THEME_JIT_OK three cosmetic methods; no theme UI or target startup executed");return 0;
+        var loadedMethod=assembly.GetType("PCL.PageSetupUI",true).GetMethod("PageSetupUI_Loaded",BindingFlags.NonPublic|BindingFlags.Instance);RuntimeHelpers.PrepareMethod(loadedMethod.MethodHandle);Console.WriteLine("JIT_OK "+loadedMethod);
+        Console.WriteLine("THEME_JIT_OK four cosmetic methods; no theme UI or target startup executed");return 0;
     }catch(Exception e){Console.Error.WriteLine(e);return 1;}}
 }
